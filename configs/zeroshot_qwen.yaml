@@ -5,7 +5,9 @@ experiment: qwen_zeroshot
 
 model:
   name: Qwen/Qwen2.5-1.5B-Instruct
-  # fp16 everywhere: T4 has no bfloat16, and fp16 inference is stable on Apple MPS
+  # fp16 everywhere. T4 is Turing (compute capability 7.5), where bf16 is emulated
+  # rather than run on the tensor cores — native bf16 starts at Ampere (8.0). fp16
+  # inference is also stable on Apple MPS
   # (unlike fp16 *training*, which is why notebook 02 stays in fp32 off CUDA).
   dtype: float16
 

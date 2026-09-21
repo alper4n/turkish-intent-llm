@@ -5,7 +5,8 @@ experiment: qwen_lora_sft
 
 model:
   name: Qwen/Qwen2.5-1.5B-Instruct
-  dtype: float16            # T4 is Turing-class — no bfloat16
+  # T4 is Turing (7.5): bf16 runs but is emulated, so fp16 is the real choice there.
+  dtype: float16
 
 lora:
   r: 16

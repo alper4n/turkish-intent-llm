@@ -13,10 +13,10 @@ examples, is a parameter-efficient fine-tuned 1.5B LLM actually better than a 11
 that was pretrained on Turkish?** Every number below comes from a run in this repository;
 nothing is quoted from a paper.
 
-> **Status — work in progress.** Data exploration and the BERTurk baseline are complete.
-> The two LLM experiments have not been run yet, so their rows are empty. Every row is
-> transcribed from `results/*.json` as the experiment lands; no placeholder numbers are
-> published.
+> **Status — work in progress.** Data exploration, the BERTurk baseline and the zero-shot
+> baseline are complete. The LoRA fine-tune has not been run yet, so its row is empty. Every
+> row is transcribed from `results/*.json` as the experiment lands; no placeholder numbers
+> are published.
 
 ## Results
 
@@ -24,7 +24,7 @@ All models are evaluated on the official MASSIVE tr-TR **test** split (2,974 utt
 
 | Experiment | Model | Trainable params | Accuracy | Macro-F1 |
 |---|---|---:|---:|---:|
-| Zero-shot prompting | Qwen2.5-1.5B-Instruct | 0 | — | — |
+| Zero-shot prompting | Qwen2.5-1.5B-Instruct | 0 | 0.4526 | 0.4049 |
 | Classical fine-tune | BERTurk (`dbmdz/bert-base-turkish-cased`) | 110,663,484 | **0.8773** | **0.8501** |
 | LoRA SFT | Qwen2.5-1.5B-Instruct + LoRA | — | — | — |
 
@@ -189,8 +189,70 @@ shreds Turkish morphology".
 
 These numbers come from a run on Apple M-series MPS in **fp32**, taking 45.5 minutes. On a
 Colab T4 the notebook switches to fp16 automatically (`USE_FP16` follows `cuda_available`,
-and T4 has no bfloat16). The full environment is recorded in `results/berturk.json`, so a
+and T4 gains nothing from bf16). The full environment is recorded in `results/berturk.json`, so a
 re-run on different hardware is comparable rather than confusing.
+
+## Zero-shot baseline
+
+Qwen2.5-1.5B-Instruct, no training, prompted with all 60 intent names and asked to return
+one. Greedy decoding. The prompt was checked on a 200-utterance validation sample and frozen
+before the test set was touched.
+
+| | Test |
+|---|---:|
+| Accuracy | 0.4526 |
+| Macro-F1 (59 intents present) | 0.4049 |
+| Macro-F1 (all 60 labels) | 0.3982 |
+| Weighted F1 | 0.4448 |
+
+The frozen prompt scored 0.4550 on the validation sample and 0.4526 on test, so the
+held-out estimate was honest — nothing was tuned into the test number.
+
+This is **less than half** of what the 110M BERTurk encoder achieves on macro-F1 (0.8501).
+Zero-shot prompting of a general instruction model is not competitive on this task, and the
+reasons are specific rather than vague.
+
+### It invents labels that do not exist
+
+101 of 2,974 predictions (3.4%) were not valid intent names, even though the full inventory
+was in the prompt. The model composed plausible-looking labels out of the morphology of the
+real ones — `transport_radio`, `audio_volume_off`, `iot_hue_lightclean`, `qa_math`,
+`sports_score`. Counting distinct output strings gives **123 against a label space of 60**.
+
+These are recorded rather than repaired: `src/prompting.py` accepts punctuation, casing and
+a trailing gloss, but never digs a label out of a sentence or snaps a near-miss onto the
+closest real name. Lenient matching would have quietly converted a model failure into a
+parsing convenience.
+
+### It does not know where the taxonomy draws its lines
+
+The single most revealing error: the model predicted `cooking_query` **53 times**, and every
+one was wrong — that intent has no test utterances at all.
+
+| What it actually was | Times predicted as `cooking_query` |
+|---|---:|
+| `cooking_recipe` | 15 |
+| `iot_coffee` | 9 |
+| `takeaway_order` | 4 |
+| `takeaway_query` | 4 |
+| `weather_query` | 4 |
+
+Given *"bu gece akşam yemeği için sushi söyler misin"* ("order sushi for dinner tonight"),
+the model reasons semantically — this is about food, so it is a cooking query. MASSIVE
+splits food across `cooking_recipe`, `takeaway_order` and `iot_coffee`, and nothing in a
+list of label names says where those borders run. That knowledge lives in the training data,
+which is exactly what the zero-shot setting withholds.
+
+The same failure shows up as systematic over-prediction of broad-sounding labels:
+
+| Intent | Predicted | Actually occurs |
+|---|---:|---:|
+| `music_query` | 140 | 35 |
+| `recommendation_events` | 100 | 43 |
+| `alarm_set` | 96 | 41 |
+
+A label inventory tells the model what the classes are called. It does not tell it what they
+mean, and on a 60-way taxonomy with overlapping semantics, the names are not enough.
 
 ## Experiments
 
@@ -198,12 +260,15 @@ re-run on different hardware is comparable rather than confusing.
 |---|---|---|
 | 01 | [`01_data_exploration.ipynb`](notebooks/01_data_exploration.ipynb) | Splits, label imbalance, length statistics, Turkish-specific analysis. **Done.** |
 | 02 | [`02_baseline_berturk.ipynb`](notebooks/02_baseline_berturk.ipynb) | Fine-tune `dbmdz/bert-base-turkish-cased` for 60-way classification. **Done.** |
-| 03 | [`03_zeroshot_qwen.ipynb`](notebooks/03_zeroshot_qwen.ipynb) | Qwen2.5-1.5B-Instruct prompted with the full intent inventory, no training. *Ready to run.* |
+| 03 | [`03_zeroshot_qwen.ipynb`](notebooks/03_zeroshot_qwen.ipynb) | Qwen2.5-1.5B-Instruct prompted with the full intent inventory, no training. **Done.** |
 | 04 | [`04_lora_qwen.ipynb`](notebooks/04_lora_qwen.ipynb) | Qwen2.5-1.5B-Instruct + LoRA, supervised fine-tuning to emit the intent label. *Ready to run.* |
 | 05 | `05_error_analysis.ipynb` | Confusion pairs, per-intent breakdown, Turkish-specific failure modes. *Planned.* |
 
-Every notebook runs end to end on a free Google Colab **T4**. T4 is Turing-class and has no
-bfloat16 support, so mixed-precision training uses fp16 throughout.
+Every notebook runs end to end on a free Google Colab **T4**. Mixed precision is fp16
+throughout: the T4 is Turing (compute capability 7.5), and although PyTorch reports bf16
+as supported there, it is emulated rather than executed on the tensor cores — native bf16
+begins at Ampere. Each results file records the capability alongside both bf16 flags, so
+the choice can be checked rather than taken on trust.
 
 Notebooks 01 and 02 also run on a laptop — the BERTurk numbers above came from an Apple
 MPS run. Notebooks 03 and 04 need the GPU. The 1.5B model is 3.08 GB in fp16 before any

@@ -1,0 +1,600 @@
+{
+  "generated_at": "2026-09-21T19:33:08+00:00",
+  "experiment": "qwen_zeroshot",
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "seed": 42,
+  "config": {
+    "experiment": "qwen_zeroshot",
+    "model": {
+      "name": "Qwen/Qwen2.5-1.5B-Instruct",
+      "dtype": "float16"
+    },
+    "generation": {
+      "batch_size": 4,
+      "batch_size_cuda": 16,
+      "max_new_tokens": 12,
+      "do_sample": false
+    },
+    "prompt": {
+      "dev_sample_size": 200
+    },
+    "output": {
+      "results_name": "zeroshot_qwen",
+      "predictions_name": "zeroshot_qwen_predictions"
+    }
+  },
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Linux-6.6.122+-x86_64-with-glibc2.39",
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "gpu": "Tesla T4",
+    "bf16_supported": true,
+    "device": "cuda",
+    "batch_size": 16
+  },
+  "model_info": {
+    "total_parameters": 1543714304,
+    "trainable_parameters": 0,
+    "dtype": "float16"
+  },
+  "prompt": {
+    "system": "You are an intent classifier for a Turkish voice assistant.\nClassify the user's utterance into exactly one of these intents:\nalarm_query, alarm_remove, alarm_set, audio_volume_down, audio_volume_mute, audio_volume_other, audio_volume_up, calendar_query, calendar_remove, calendar_set, cooking_query, cooking_recipe, datetime_convert, datetime_query, email_addcontact, email_query, email_querycontact, email_sendemail, general_greet, general_joke, general_quirky, iot_cleaning, iot_coffee, iot_hue_lightchange, iot_hue_lightdim, iot_hue_lightoff, iot_hue_lighton, iot_hue_lightup, iot_wemo_off, iot_wemo_on, lists_createoradd, lists_query, lists_remove, music_dislikeness, music_likeness, music_query, music_settings, news_query, play_audiobook, play_game, play_music, play_podcasts, play_radio, qa_currency, qa_definition, qa_factoid, qa_maths, qa_stock, recommendation_events, recommendation_locations, recommendation_movies, social_post, social_query, takeaway_order, takeaway_query, transport_query, transport_taxi, transport_ticket, transport_traffic, weather_query\n\nAnswer with the intent name only, nothing else.",
+    "dev_sample_size": 200,
+    "dev_accuracy": 0.455,
+    "dev_valid_rate": 0.965
+  },
+  "test": {
+    "n_examples": 2974,
+    "accuracy": 0.4526,
+    "macro_f1": 0.4049,
+    "macro_f1_all_labels": 0.3982,
+    "weighted_f1": 0.4448,
+    "label_space": {
+      "n_labels": 60,
+      "n_labels_present": 59,
+      "absent_from_split": [
+        "cooking_query"
+      ],
+      "n_invalid_predictions": 101,
+      "invalid_predictions": [
+        {
+          "prediction": "transport_radio",
+          "count": 6
+        },
+        {
+          "prediction": "transport_order",
+          "count": 5
+        },
+        {
+          "prediction": "maths",
+          "count": 5
+        },
+        {
+          "prediction": "audio_volume_off",
+          "count": 4
+        },
+        {
+          "prediction": "iot_hue_lightclean",
+          "count": 4
+        },
+        {
+          "prediction": "audio_volume_dim",
+          "count": 4
+        },
+        {
+          "prediction": "sports_score",
+          "count": 3
+        },
+        {
+          "prediction": "lists_add",
+          "count": 3
+        },
+        {
+          "prediction": "recommendation_books",
+          "count": 3
+        },
+        {
+          "prediction": "qa_math",
+          "count": 3
+        }
+      ]
+    },
+    "per_class": [
+      {
+        "intent": "iot_wemo_off",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 18
+      },
+      {
+        "intent": "iot_wemo_on",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 10
+      },
+      {
+        "intent": "general_greet",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      {
+        "intent": "general_quirky",
+        "precision": 0.2308,
+        "recall": 0.0178,
+        "f1": 0.033,
+        "support": 169
+      },
+      {
+        "intent": "iot_cleaning",
+        "precision": 0.2,
+        "recall": 0.0385,
+        "f1": 0.0645,
+        "support": 26
+      },
+      {
+        "intent": "general_joke",
+        "precision": 0.0536,
+        "recall": 0.1579,
+        "f1": 0.08,
+        "support": 19
+      },
+      {
+        "intent": "iot_hue_lighton",
+        "precision": 0.0476,
+        "recall": 0.6667,
+        "f1": 0.0889,
+        "support": 3
+      },
+      {
+        "intent": "music_settings",
+        "precision": 0.0769,
+        "recall": 0.1667,
+        "f1": 0.1053,
+        "support": 6
+      },
+      {
+        "intent": "music_dislikeness",
+        "precision": 0.0667,
+        "recall": 0.25,
+        "f1": 0.1053,
+        "support": 4
+      },
+      {
+        "intent": "email_querycontact",
+        "precision": 0.1026,
+        "recall": 0.1538,
+        "f1": 0.1231,
+        "support": 26
+      },
+      {
+        "intent": "qa_factoid",
+        "precision": 0.3929,
+        "recall": 0.078,
+        "f1": 0.1302,
+        "support": 141
+      },
+      {
+        "intent": "iot_hue_lightup",
+        "precision": 0.6667,
+        "recall": 0.0741,
+        "f1": 0.1333,
+        "support": 27
+      },
+      {
+        "intent": "play_music",
+        "precision": 0.625,
+        "recall": 0.0852,
+        "f1": 0.15,
+        "support": 176
+      },
+      {
+        "intent": "takeaway_query",
+        "precision": 0.5,
+        "recall": 0.1143,
+        "f1": 0.186,
+        "support": 35
+      },
+      {
+        "intent": "qa_maths",
+        "precision": 0.6,
+        "recall": 0.12,
+        "f1": 0.2,
+        "support": 25
+      },
+      {
+        "intent": "play_audiobook",
+        "precision": 0.8571,
+        "recall": 0.1463,
+        "f1": 0.25,
+        "support": 41
+      },
+      {
+        "intent": "recommendation_events",
+        "precision": 0.2,
+        "recall": 0.4651,
+        "f1": 0.2797,
+        "support": 43
+      },
+      {
+        "intent": "recommendation_movies",
+        "precision": 0.1875,
+        "recall": 0.6,
+        "f1": 0.2857,
+        "support": 20
+      },
+      {
+        "intent": "qa_stock",
+        "precision": 0.625,
+        "recall": 0.1923,
+        "f1": 0.2941,
+        "support": 26
+      },
+      {
+        "intent": "social_query",
+        "precision": 0.4,
+        "recall": 0.24,
+        "f1": 0.3,
+        "support": 25
+      },
+      {
+        "intent": "calendar_query",
+        "precision": 0.3083,
+        "recall": 0.2937,
+        "f1": 0.3008,
+        "support": 126
+      },
+      {
+        "intent": "music_query",
+        "precision": 0.1929,
+        "recall": 0.7714,
+        "f1": 0.3086,
+        "support": 35
+      },
+      {
+        "intent": "takeaway_order",
+        "precision": 0.2439,
+        "recall": 0.4545,
+        "f1": 0.3175,
+        "support": 22
+      },
+      {
+        "intent": "audio_volume_up",
+        "precision": 0.2414,
+        "recall": 0.5385,
+        "f1": 0.3333,
+        "support": 13
+      },
+      {
+        "intent": "email_addcontact",
+        "precision": 0.2115,
+        "recall": 0.9167,
+        "f1": 0.3438,
+        "support": 12
+      },
+      {
+        "intent": "transport_taxi",
+        "precision": 0.8333,
+        "recall": 0.2174,
+        "f1": 0.3448,
+        "support": 23
+      },
+      {
+        "intent": "iot_hue_lightdim",
+        "precision": 0.4118,
+        "recall": 0.3333,
+        "f1": 0.3684,
+        "support": 21
+      },
+      {
+        "intent": "iot_hue_lightchange",
+        "precision": 0.3214,
+        "recall": 0.5,
+        "f1": 0.3913,
+        "support": 36
+      },
+      {
+        "intent": "audio_volume_other",
+        "precision": 0.3333,
+        "recall": 0.5,
+        "f1": 0.4,
+        "support": 6
+      },
+      {
+        "intent": "audio_volume_mute",
+        "precision": 0.75,
+        "recall": 0.2812,
+        "f1": 0.4091,
+        "support": 32
+      },
+      {
+        "intent": "transport_query",
+        "precision": 0.3158,
+        "recall": 0.5882,
+        "f1": 0.411,
+        "support": 51
+      },
+      {
+        "intent": "qa_definition",
+        "precision": 0.4773,
+        "recall": 0.3684,
+        "f1": 0.4158,
+        "support": 57
+      },
+      {
+        "intent": "music_likeness",
+        "precision": 0.4103,
+        "recall": 0.4444,
+        "f1": 0.4267,
+        "support": 36
+      },
+      {
+        "intent": "datetime_convert",
+        "precision": 0.3462,
+        "recall": 0.6,
+        "f1": 0.439,
+        "support": 15
+      },
+      {
+        "intent": "recommendation_locations",
+        "precision": 0.5789,
+        "recall": 0.3548,
+        "f1": 0.44,
+        "support": 31
+      },
+      {
+        "intent": "social_post",
+        "precision": 0.7778,
+        "recall": 0.3457,
+        "f1": 0.4786,
+        "support": 81
+      },
+      {
+        "intent": "calendar_set",
+        "precision": 0.4622,
+        "recall": 0.4976,
+        "f1": 0.4793,
+        "support": 209
+      },
+      {
+        "intent": "alarm_set",
+        "precision": 0.3542,
+        "recall": 0.8293,
+        "f1": 0.4964,
+        "support": 41
+      },
+      {
+        "intent": "play_radio",
+        "precision": 0.8529,
+        "recall": 0.4028,
+        "f1": 0.5472,
+        "support": 72
+      },
+      {
+        "intent": "alarm_query",
+        "precision": 0.5,
+        "recall": 0.6471,
+        "f1": 0.5641,
+        "support": 34
+      },
+      {
+        "intent": "cooking_recipe",
+        "precision": 0.6154,
+        "recall": 0.5556,
+        "f1": 0.5839,
+        "support": 72
+      },
+      {
+        "intent": "iot_coffee",
+        "precision": 0.72,
+        "recall": 0.5,
+        "f1": 0.5902,
+        "support": 36
+      },
+      {
+        "intent": "play_podcasts",
+        "precision": 0.5,
+        "recall": 0.7302,
+        "f1": 0.5935,
+        "support": 63
+      },
+      {
+        "intent": "audio_volume_down",
+        "precision": 0.4737,
+        "recall": 0.8182,
+        "f1": 0.6,
+        "support": 11
+      },
+      {
+        "intent": "play_game",
+        "precision": 0.9444,
+        "recall": 0.4857,
+        "f1": 0.6415,
+        "support": 35
+      },
+      {
+        "intent": "news_query",
+        "precision": 0.5523,
+        "recall": 0.7661,
+        "f1": 0.6419,
+        "support": 124
+      },
+      {
+        "intent": "lists_createoradd",
+        "precision": 0.5333,
+        "recall": 0.8205,
+        "f1": 0.6465,
+        "support": 39
+      },
+      {
+        "intent": "email_query",
+        "precision": 0.8857,
+        "recall": 0.521,
+        "f1": 0.6561,
+        "support": 119
+      },
+      {
+        "intent": "email_sendemail",
+        "precision": 0.8125,
+        "recall": 0.5702,
+        "f1": 0.6701,
+        "support": 114
+      },
+      {
+        "intent": "lists_query",
+        "precision": 0.5775,
+        "recall": 0.8039,
+        "f1": 0.6721,
+        "support": 51
+      },
+      {
+        "intent": "alarm_remove",
+        "precision": 0.5588,
+        "recall": 0.9048,
+        "f1": 0.6909,
+        "support": 21
+      },
+      {
+        "intent": "iot_hue_lightoff",
+        "precision": 0.6034,
+        "recall": 0.814,
+        "f1": 0.6931,
+        "support": 43
+      },
+      {
+        "intent": "weather_query",
+        "precision": 0.6576,
+        "recall": 0.7756,
+        "f1": 0.7118,
+        "support": 156
+      },
+      {
+        "intent": "calendar_remove",
+        "precision": 0.8542,
+        "recall": 0.6119,
+        "f1": 0.713,
+        "support": 67
+      },
+      {
+        "intent": "transport_traffic",
+        "precision": 0.619,
+        "recall": 0.8667,
+        "f1": 0.7222,
+        "support": 15
+      },
+      {
+        "intent": "datetime_query",
+        "precision": 0.6765,
+        "recall": 0.7841,
+        "f1": 0.7263,
+        "support": 88
+      },
+      {
+        "intent": "transport_ticket",
+        "precision": 0.88,
+        "recall": 0.6286,
+        "f1": 0.7333,
+        "support": 35
+      },
+      {
+        "intent": "qa_currency",
+        "precision": 0.8667,
+        "recall": 0.6667,
+        "f1": 0.7536,
+        "support": 39
+      },
+      {
+        "intent": "lists_remove",
+        "precision": 0.95,
+        "recall": 0.7308,
+        "f1": 0.8261,
+        "support": 52
+      }
+    ],
+    "top_confusions": [
+      {
+        "gold": "play_music",
+        "predicted": "music_query",
+        "count": 79
+      },
+      {
+        "gold": "calendar_query",
+        "predicted": "calendar_set",
+        "count": 45
+      },
+      {
+        "gold": "qa_factoid",
+        "predicted": "weather_query",
+        "count": 30
+      },
+      {
+        "gold": "general_quirky",
+        "predicted": "general_joke",
+        "count": 27
+      },
+      {
+        "gold": "email_query",
+        "predicted": "email_querycontact",
+        "count": 27
+      },
+      {
+        "gold": "play_music",
+        "predicted": "play_podcasts",
+        "count": 24
+      },
+      {
+        "gold": "calendar_set",
+        "predicted": "recommendation_events",
+        "count": 23
+      },
+      {
+        "gold": "email_sendemail",
+        "predicted": "email_addcontact",
+        "count": 23
+      },
+      {
+        "gold": "calendar_set",
+        "predicted": "alarm_set",
+        "count": 21
+      },
+      {
+        "gold": "calendar_remove",
+        "predicted": "recommendation_events",
+        "count": 18
+      },
+      {
+        "gold": "calendar_query",
+        "predicted": "recommendation_events",
+        "count": 18
+      },
+      {
+        "gold": "qa_factoid",
+        "predicted": "news_query",
+        "count": 16
+      },
+      {
+        "gold": "calendar_set",
+        "predicted": "calendar_query",
+        "count": 15
+      },
+      {
+        "gold": "cooking_recipe",
+        "predicted": "cooking_query",
+        "count": 15
+      },
+      {
+        "gold": "qa_factoid",
+        "predicted": "calendar_query",
+        "count": 15
+      }
+    ]
+  },
+  "prediction_diversity": {
+    "distinct_intents_predicted": 123,
+    "n_intents": 60
+  }
+}

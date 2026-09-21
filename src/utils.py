@@ -67,8 +67,15 @@ def describe_environment() -> dict[str, Any]:
         info["torch"] = torch.__version__
         info["cuda_available"] = torch.cuda.is_available()
         if torch.cuda.is_available():
+            major, minor = torch.cuda.get_device_capability(0)
             info["gpu"] = torch.cuda.get_device_name(0)
-            info["bf16_supported"] = torch.cuda.is_bf16_supported()
+            info["cuda_capability"] = f"{major}.{minor}"
+            # `is_bf16_supported()` answers "will bf16 run", not "will it run fast": it
+            # returns True on Turing (7.5, e.g. T4), where bf16 is emulated rather than
+            # executed by the tensor cores. Native bf16 starts at Ampere (8.0), so that
+            # is what we record and what the fp16/bf16 choice is actually based on.
+            info["bf16_runs"] = torch.cuda.is_bf16_supported()
+            info["bf16_native"] = major >= 8
     except ImportError:
         info["torch"] = None
     return info
