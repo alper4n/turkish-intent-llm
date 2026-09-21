@@ -3,6 +3,7 @@ pandas>=2.0
 numpy>=1.24
 pyyaml>=6.0
 scikit-learn>=1.3
+scipy>=1.10          # exact McNemar test in notebook 05
 matplotlib>=3.7
 
 # Modelling. Floors rather than pins, so the file stays installable on Google Colab,

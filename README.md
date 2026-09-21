@@ -15,7 +15,9 @@ that was pretrained on Turkish?**
 **No.** BERTurk wins on macro-F1 by 1.2 points, having trained in under half the time on a
 laptop GPU rather than 100 minutes on a T4, and it classifies in one forward pass instead of
 generating tokens. LoRA closes almost all of the enormous gap from zero-shot — but it closes
-it to just under the encoder, not past it.
+it to just under the encoder, not past it. The gap is significant (exact McNemar, p = 0.0016),
+though the two runs were not given equal opportunity to be selected — see
+[Limitations](#limitations).
 
 ### Four things the experiments turned up
 
@@ -417,6 +419,11 @@ An oracle picking the better of the two on each utterance would score **0.9055**
 0.8773 for BERTurk alone. The 1.2-point gap in the headline table hides the fact that these
 are not the same classifier with a small offset — nearly 3 points sit in the disagreement.
 
+Only the disagreements carry information about which model is better, so the gap is tested
+with an exact McNemar test on the 215 discordant pairs: **p = 0.0016**. The encoder's lead
+over this particular LoRA run is not chance — with the caveat in
+[Limitations](#limitations) that the two were not given equal opportunity to be selected.
+
 ### Diacritics cost real accuracy, and one letter does most of the damage
 
 ![Diacritic ablation](results/figures/diacritic_ablation.png)
@@ -492,6 +499,38 @@ budget, not just a training bill.
 281 utterances defeat both fine-tuned models, led by `general_quirky` (52), `calendar_query`
 (21) and `qa_factoid` (16) — the same catch-all and query/action boundaries that notebook 01
 flagged from the data alone, before anything was trained.
+
+## Limitations
+
+The headline comparison is honest about its numbers; it should be equally honest about what
+they do and do not support.
+
+**The two models were not given equal opportunity to be selected.** BERTurk trained for 10
+epochs with early stopping and kept the best checkpoint by validation macro-F1. The LoRA run
+trained for 2 fixed epochs and used the final weights, with no checkpoint selection at all.
+That asymmetry favours the encoder — and this repo's own result that
+[selection was worth 5.6 points](#selecting-on-macro-f1-instead-of-loss-is-worth-56-points)
+shows the size of the advantage being handed over. Worse, LoRA's validation loss was still
+falling when the run ended (0.2013 → 0.1575 across the two epochs), so the model was
+under-trained rather than converged. **0.8383 should be read as a floor for this approach,
+not a ceiling.** A symmetric re-run — more epochs, checkpoint selection on validation
+macro-F1 — is the obvious next experiment.
+
+**No hyperparameter search.** Each model ran one configuration, chosen from ordinary
+practice (LoRA r=16/α=32, BERTurk lr 3e-5). The comparison is therefore between reasonable
+defaults, not between tuned optima.
+
+**One seed.** Every experiment ran once at seed 42. The McNemar test above establishes that
+these two *trained models* differ, not that the two *methods* differ by that margin — it
+carries no estimate of run-to-run variance.
+
+**The robustness probe covers BERTurk only.** The diacritic ablation needs to re-run a model
+over perturbed text, and the LoRA adapter is not committed (it needs a GPU to regenerate).
+The finding about `ı` is a property of the encoder measured here, not yet shown for the LLM.
+
+**The perturbations are synthetic.** Diacritics are stripped programmatically. That models
+one common failure of typed Turkish, but it is not a sample of what real users or a real ASR
+front-end produce, and it says nothing about the error patterns those would introduce.
 
 ## Experiments
 

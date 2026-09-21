@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T22:31:40+00:00",
+  "generated_at": "2026-09-21T22:39:46+00:00",
   "experiment": "error_analysis",
   "seed": 42,
   "berturk_reproduction": {
@@ -13,7 +13,8 @@
     "only_lora": 84,
     "both_wrong": 281,
     "best_single_accuracy": 0.8773,
-    "either_right_accuracy": 0.9055
+    "either_right_accuracy": 0.9055,
+    "mcnemar_exact_p": 0.0016433287183862948
   },
   "scenario_containment": [
     {
