@@ -280,6 +280,11 @@ correct domain and then picks the wrong verb:
 
 Play versus query, read versus create, contact versus message — the model understands what
 the Turkish utterance is *about* and fails on which operation the taxonomy assigns it to.
+
+("Domain" here means semantic closeness, not MASSIVE's `scenario` field, which groups
+intents by action in one place and by content in another — `play_music` sits under `play`
+while `music_query` sits under `music`. Only 27% of these errors stay inside the gold
+scenario; [notebook 05](notebooks/05_error_analysis.ipynb) takes that apart.)
 That distinction matters for the comparison that follows: the deficit LoRA has to close is
 not Turkish comprehension, it is knowledge of a label scheme that only exists in the
 training data.
@@ -374,6 +379,70 @@ scaffolding is a prompt, not a classification head. Neither advantage is worth 1
 macro-F1 here, but both would matter for a system carrying many intents that change over
 time.
 
+## Error analysis
+
+Reloading the saved BERTurk checkpoint reproduces notebook 02 **exactly** — 0.8773 accuracy,
+0.8501 macro-F1, to four decimals. Its per-utterance predictions are committed alongside the
+other two, so all three models can be compared example by example.
+
+### The two fine-tuned models fail differently
+
+| | Utterances | Share |
+|---|---:|---:|
+| Both right | 2,478 | 83.3% |
+| Only BERTurk | 131 | 4.4% |
+| Only LoRA | 84 | 2.8% |
+| Both wrong | 281 | 9.4% |
+
+An oracle picking the better of the two on each utterance would score **0.9055** against
+0.8773 for BERTurk alone. The 1.2-point gap in the headline table hides the fact that these
+are not the same classifier with a small offset — nearly 3 points sit in the disagreement.
+
+### Diacritics cost real accuracy, and one letter does most of the damage
+
+![Diacritic ablation](results/figures/diacritic_ablation.png)
+
+Stripping all six Turkish diacritics from the test set costs BERTurk **3.3 points of
+accuracy** (0.8773 → 0.8440) and 3.4 of macro-F1. Folding one letter at a time shows the
+loss is not spread evenly:
+
+| Folded | Utterances affected | Accuracy | Drop | Flipped per 100 affected |
+|---|---:|---:|---:|---:|
+| `ı` → `i` | 1,868 | 0.8494 | −0.0279 | 4.44 |
+| `ü` → `u` | 980 | 0.8662 | −0.0111 | 3.37 |
+| `ş` → `s` | 1,046 | 0.8695 | −0.0078 | 2.22 |
+| `ö` → `o` | 589 | 0.8722 | −0.0051 | 2.58 |
+| `ç` → `c` | 970 | 0.8739 | −0.0034 | 1.04 |
+| `ğ` → `g` | 575 | 0.8756 | −0.0017 | 0.88 |
+
+**`ı` alone accounts for 84% of the total damage**, and it is the costliest per affected
+utterance as well. That is predictable from the language rather than the data: ASCII has one
+`i`, so folding collapses Turkish's dotted/dotless distinction — which is not decorative. It
+carries vowel harmony and sits inside the highest-frequency suffixes (`-dı/-di`, `-ın/-in`,
+`-lı/-li`), so merging the two letters collides far more distinct word forms than merging
+`ğ` into `g`. 103 correct predictions flip on this one substitution:
+
+| Utterance | Folded | Prediction |
+|---|---|---|
+| ışıkları kıs | işiklari kis | `iot_hue_lightdim` → `weather_query` |
+| bana bir fıkra anlatır mısın | bana bir fikra anlatir misin | `general_joke` → `general_quirky` |
+| ve karanlık çöktü | ve karanlik çöktü | `iot_hue_lighton` → `iot_hue_lightoff` |
+
+The practical read: a deployment taking typed Turkish should restore dotted/dotless `i`
+before anything else. Fixing that one letter recovers most of what ASCII input costs.
+
+### What the corpus cannot tell us
+
+A Turkish-aware lowercasing probe returns a delta of exactly zero — because **not one of the
+16,521 utterances contains a capital letter**. That is missing evidence, not robustness. This
+data cannot say how any of these models handle `Yarın Sabah Alarm Kur`.
+
+### The residue
+
+281 utterances defeat both fine-tuned models, led by `general_quirky` (52), `calendar_query`
+(21) and `qa_factoid` (16) — the same catch-all and query/action boundaries that notebook 01
+flagged from the data alone, before anything was trained.
+
 ## Experiments
 
 | # | Notebook | What it does |
@@ -382,9 +451,10 @@ time.
 | 02 | [`02_baseline_berturk.ipynb`](notebooks/02_baseline_berturk.ipynb) | Fine-tune `dbmdz/bert-base-turkish-cased` for 60-way classification. **Done.** |
 | 03 | [`03_zeroshot_qwen.ipynb`](notebooks/03_zeroshot_qwen.ipynb) | Qwen2.5-1.5B-Instruct prompted with the full intent inventory, no training. **Done.** |
 | 04 | [`04_lora_qwen.ipynb`](notebooks/04_lora_qwen.ipynb) | Qwen2.5-1.5B-Instruct + LoRA, supervised fine-tuning to emit the intent label. **Done.** |
-| 05 | `05_error_analysis.ipynb` | Where the two fine-tuned models disagree, and robustness to ASCII-folded Turkish. *Planned.* |
+| 05 | [`05_error_analysis.ipynb`](notebooks/05_error_analysis.ipynb) | Where the two fine-tuned models disagree, and robustness to ASCII-folded Turkish. **Done.** |
 
-All three experiments are complete; notebook 05 goes deeper into the errors that remain.
+Notebook 05 needs the BERTurk weights, so run notebook 02 first — the model is ~420 MB and
+is deliberately not committed.
 
 Every notebook runs end to end on a free Google Colab **T4**. Mixed precision is fp16
 throughout: the T4 is Turing (compute capability 7.5), and although PyTorch reports bf16

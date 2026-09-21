@@ -1,0 +1,111 @@
+{
+  "generated_at": "2026-09-21T22:10:30+00:00",
+  "experiment": "error_analysis",
+  "seed": 42,
+  "berturk_reproduction": {
+    "accuracy": 0.8773,
+    "macro_f1": 0.8501,
+    "matches_recorded": true
+  },
+  "model_overlap": {
+    "both_right": 2478,
+    "only_berturk": 131,
+    "only_lora": 84,
+    "both_wrong": 281,
+    "best_single_accuracy": 0.8773,
+    "either_right_accuracy": 0.9055
+  },
+  "scenario_containment": [
+    {
+      "model": "zeroshot",
+      "errors": 1628,
+      "same scenario": 0.266
+    },
+    {
+      "model": "lora",
+      "errors": 412,
+      "same scenario": 0.2961
+    },
+    {
+      "model": "berturk",
+      "errors": 365,
+      "same scenario": 0.337
+    }
+  ],
+  "orthographic_probes": {
+    "as written (baseline)": {
+      "accuracy": 0.8773,
+      "macro_f1": 0.8501
+    },
+    "all diacritics stripped": {
+      "accuracy": 0.844,
+      "macro_f1": 0.816
+    },
+    "lowercased (Turkish-aware)": {
+      "accuracy": 0.8773,
+      "macro_f1": 0.8501
+    }
+  },
+  "diacritic_ablation": [
+    {
+      "letter": "ı",
+      "utterances affected": 1868,
+      "accuracy": 0.8494,
+      "drop": 0.0279,
+      "flipped per 100 affected": 4.44
+    },
+    {
+      "letter": "ş",
+      "utterances affected": 1046,
+      "accuracy": 0.8695,
+      "drop": 0.0078,
+      "flipped per 100 affected": 2.22
+    },
+    {
+      "letter": "ç",
+      "utterances affected": 970,
+      "accuracy": 0.8739,
+      "drop": 0.0034,
+      "flipped per 100 affected": 1.04
+    },
+    {
+      "letter": "ü",
+      "utterances affected": 980,
+      "accuracy": 0.8662,
+      "drop": 0.0111,
+      "flipped per 100 affected": 3.37
+    },
+    {
+      "letter": "ö",
+      "utterances affected": 589,
+      "accuracy": 0.8722,
+      "drop": 0.0051,
+      "flipped per 100 affected": 2.58
+    },
+    {
+      "letter": "ğ",
+      "utterances affected": 575,
+      "accuracy": 0.8756,
+      "drop": 0.0017,
+      "flipped per 100 affected": 0.88
+    }
+  ],
+  "corpus_has_no_capitals": true,
+  "ambiguity": {
+    "ambiguous_test_utterances": 15,
+    "accuracy_by_ambiguity": {
+      "zeroshot": {
+        "unambiguous": 0.4529,
+        "ambiguous surface form": 0.4
+      },
+      "lora": {
+        "unambiguous": 0.8631,
+        "ambiguous surface form": 0.5333
+      },
+      "berturk": {
+        "unambiguous": 0.8797,
+        "ambiguous surface form": 0.4
+      }
+    }
+  }
+}
