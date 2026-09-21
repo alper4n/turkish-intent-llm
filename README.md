@@ -254,6 +254,34 @@ The same failure shows up as systematic over-prediction of broad-sounding labels
 A label inventory tells the model what the classes are called. It does not tell it what they
 mean, and on a 60-way taxonomy with overlapping semantics, the names are not enough.
 
+### It gets the domain right and the operation wrong
+
+The most frequent confusions are not random. In almost every one the model lands in the
+correct domain and then picks the wrong verb:
+
+| Count | Gold | Predicted |
+|---:|---|---|
+| 79 | `play_music` | `music_query` |
+| 45 | `calendar_query` | `calendar_set` |
+| 30 | `qa_factoid` | `weather_query` |
+| 27 | `general_quirky` | `general_joke` |
+| 27 | `email_query` | `email_querycontact` |
+| 24 | `play_music` | `play_podcasts` |
+
+Play versus query, read versus create, contact versus message — the model understands what
+the Turkish utterance is *about* and fails on which operation the taxonomy assigns it to.
+That distinction matters for the comparison that follows: the deficit LoRA has to close is
+not Turkish comprehension, it is knowledge of a label scheme that only exists in the
+training data.
+
+Three intents score exactly 0: `iot_wemo_off` (18 test utterances), `iot_wemo_on` (10) and
+`general_greet` (1). `general_quirky` — MASSIVE's catch-all, and the intent BERTurk also
+struggled with — collapses almost completely, with 3 of its 169 test utterances recovered
+(F1 0.0330).
+
+For reference, decoding all 2,974 test utterances took **3.3 minutes** on the T4 at batch 16,
+plus 41 seconds to load the model. The cost of this baseline is the prompt, not the compute.
+
 ## Experiments
 
 | # | Notebook | What it does |
