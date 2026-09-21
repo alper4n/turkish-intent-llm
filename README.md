@@ -10,13 +10,14 @@ baseline.
 
 The question this repo answers: **for a 60-class Turkish intent task with ~11.5k training
 examples, is a parameter-efficient fine-tuned 1.5B LLM actually better than a 110M encoder
-that was pretrained on Turkish?** Every number below comes from a run in this repository;
-nothing is quoted from a paper.
+that was pretrained on Turkish?**
 
-> **Status — work in progress.** Data exploration, the BERTurk baseline and the zero-shot
-> baseline are complete. The LoRA fine-tune has not been run yet, so its row is empty. Every
-> row is transcribed from `results/*.json` as the experiment lands; no placeholder numbers
-> are published.
+**No.** BERTurk wins on macro-F1 by 1.2 points, having trained in under half the time on a
+laptop GPU rather than 100 minutes on a T4, and it classifies in one forward pass instead of
+generating tokens. LoRA closes almost all of the enormous gap from zero-shot — but it closes
+it to just under the encoder, not past it.
+
+Every number below comes from a run in this repository; nothing is quoted from a paper.
 
 ## Results
 
@@ -25,8 +26,17 @@ All models are evaluated on the official MASSIVE tr-TR **test** split (2,974 utt
 | Experiment | Model | Trainable params | Accuracy | Macro-F1 |
 |---|---|---:|---:|---:|
 | Zero-shot prompting | Qwen2.5-1.5B-Instruct | 0 | 0.4526 | 0.4049 |
-| Classical fine-tune | BERTurk (`dbmdz/bert-base-turkish-cased`) | 110,663,484 | **0.8773** | **0.8501** |
-| LoRA SFT | Qwen2.5-1.5B-Instruct + LoRA | — | — | — |
+| LoRA SFT | Qwen2.5-1.5B-Instruct + LoRA | 18,464,768 | 0.8615 | 0.8383 |
+| **Classical fine-tune** | **BERTurk (`dbmdz/bert-base-turkish-cased`)** | 110,663,484 | **0.8773** | **0.8501** |
+
+What that costs, which the scores alone do not show:
+
+| | BERTurk | Qwen + LoRA |
+|---|---:|---:|
+| Total parameters | 110M | 1,562M |
+| Training time | 45.5 min (Apple MPS, fp32) | 101.9 min (T4, fp16) |
+| Test-set inference | single forward pass | 5.1 min of generation |
+| Artefact to ship | 423 MB model | 3.1 GB base + 74 MB adapter |
 
 **Macro-F1 convention.** `cooking_query` has no test utterances at all (see
 [Label coverage](#label-coverage)), so macro-F1 is averaged over the **59 intents present
@@ -282,6 +292,88 @@ struggled with — collapses almost completely, with 3 of its 169 test utterance
 For reference, decoding all 2,974 test utterances took **3.3 minutes** on the T4 at batch 16,
 plus 41 seconds to load the model. The cost of this baseline is the prompt, not the compute.
 
+## LoRA fine-tuning
+
+Same model as the zero-shot baseline, same prompt, 2 epochs of supervised fine-tuning on
+the 11,514 training utterances. LoRA rank 16, alpha 32, adapters on all seven attention and
+MLP projections: **18,464,768 trainable parameters, 1.18% of the model**. Loss is computed
+on the intent tokens only — 99% of each 301-token sequence is the shared prompt, and
+supervising it would spend the run learning boilerplate.
+
+| | Test |
+|---|---:|
+| Accuracy | 0.8615 |
+| Macro-F1 (59 intents present) | 0.8383 |
+| Macro-F1 (all 60 labels) | 0.8243 |
+| Weighted F1 | 0.8611 |
+
+![LoRA training loss](results/figures/lora_training_loss.png)
+
+Validation loss improved through both epochs, 0.2013 to 0.1575, so this is not a run that
+stopped early for want of capacity.
+
+### Fine-tuning fixed exactly what zero-shot got wrong
+
+Comparing the two runs utterance by utterance — same model, same prompt, only the weights
+differ:
+
+| | Count |
+|---|---:|
+| Zero-shot wrong → LoRA right | 1,267 |
+| Zero-shot right → LoRA wrong | 51 |
+| **Net corrections** | **+1,216** |
+
+The specific failures named in the zero-shot section are gone. Invented labels drop from
+**101 to 2**. The domain-right/operation-wrong confusions collapse:
+
+| Gold → Predicted | Zero-shot | LoRA |
+|---|---:|---:|
+| `play_music` → `music_query` | 79 | 2 |
+| `calendar_query` → `calendar_set` | 45 | 8 |
+| `email_query` → `email_querycontact` | 27 | 0 |
+| `play_music` → `play_podcasts` | 24 | 0 |
+
+This is the clearest result in the project. The zero-shot model already understood the
+Turkish; what it lacked was the taxonomy, and 18.5M adapter parameters were enough to
+install it.
+
+### What neither model fixes
+
+361 test utterances (12.1%) are wrong under both. LoRA's remaining errors are no longer
+about operations — they are concentrated in `general_quirky`, MASSIVE's catch-all class,
+and in the pairs notebook 01 flagged as intrinsically ambiguous *before any model was
+trained*: `general_quirky` ↔ `qa_factoid` (22 + 7), `calendar_set` ↔ `calendar_query`
+(9 + 8).
+
+`general_quirky` is where the two fine-tuned models separate:
+
+| Model | `general_quirky` F1 |
+|---|---:|
+| Zero-shot | 0.0330 |
+| Qwen + LoRA | 0.5316 |
+| BERTurk | 0.6624 |
+
+Both are also weaker on rare intents, and again BERTurk holds up slightly better:
+
+| Intent group | BERTurk | Qwen + LoRA |
+|---|---:|---:|
+| Fewer than 100 training utterances (17) | 0.7799 | 0.7586 |
+| 100 or more (42) | 0.8785 | 0.8706 |
+
+### Reading the result
+
+The encoder wins on every axis that matters for deployment: macro-F1, training time,
+inference cost, and the size of the thing you have to ship. For a fixed 60-class inventory
+with 11.5k labelled examples, a Turkish-pretrained encoder remains the right tool, and the
+1.5B generative model is paying for flexibility this task does not use.
+
+The LLM's case is narrower but real. It trains **six times fewer parameters** than BERTurk
+(18.5M against 110.7M) and ships a 74 MB adapter, so one base model could serve several
+tasks through swappable adapters. It also needs no fixed label space at inference — the
+scaffolding is a prompt, not a classification head. Neither advantage is worth 1.2 points of
+macro-F1 here, but both would matter for a system carrying many intents that change over
+time.
+
 ## Experiments
 
 | # | Notebook | What it does |
@@ -289,8 +381,10 @@ plus 41 seconds to load the model. The cost of this baseline is the prompt, not 
 | 01 | [`01_data_exploration.ipynb`](notebooks/01_data_exploration.ipynb) | Splits, label imbalance, length statistics, Turkish-specific analysis. **Done.** |
 | 02 | [`02_baseline_berturk.ipynb`](notebooks/02_baseline_berturk.ipynb) | Fine-tune `dbmdz/bert-base-turkish-cased` for 60-way classification. **Done.** |
 | 03 | [`03_zeroshot_qwen.ipynb`](notebooks/03_zeroshot_qwen.ipynb) | Qwen2.5-1.5B-Instruct prompted with the full intent inventory, no training. **Done.** |
-| 04 | [`04_lora_qwen.ipynb`](notebooks/04_lora_qwen.ipynb) | Qwen2.5-1.5B-Instruct + LoRA, supervised fine-tuning to emit the intent label. *Ready to run.* |
-| 05 | `05_error_analysis.ipynb` | Confusion pairs, per-intent breakdown, Turkish-specific failure modes. *Planned.* |
+| 04 | [`04_lora_qwen.ipynb`](notebooks/04_lora_qwen.ipynb) | Qwen2.5-1.5B-Instruct + LoRA, supervised fine-tuning to emit the intent label. **Done.** |
+| 05 | `05_error_analysis.ipynb` | Where the two fine-tuned models disagree, and robustness to ASCII-folded Turkish. *Planned.* |
+
+All three experiments are complete; notebook 05 goes deeper into the errors that remain.
 
 Every notebook runs end to end on a free Google Colab **T4**. Mixed precision is fp16
 throughout: the T4 is Turing (compute capability 7.5), and although PyTorch reports bf16
