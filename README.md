@@ -335,8 +335,8 @@ supervising it would spend the run learning boilerplate.
 
 ![LoRA training loss](results/figures/lora_training_loss.png)
 
-Validation loss improved through both epochs, 0.2013 to 0.1575, so this is not a run that
-stopped early for want of capacity.
+Validation loss was still falling at the end of epoch 2 (0.2013 → 0.1575), so this run is
+under-trained rather than converged — see [Limitations](#limitations).
 
 ### Fine-tuning fixed exactly what zero-shot got wrong
 
@@ -365,11 +365,11 @@ install it.
 
 ### What neither model fixes
 
-361 test utterances (12.1%) are wrong under both. LoRA's remaining errors are no longer
-about operations — they are concentrated in `general_quirky`, MASSIVE's catch-all class,
-and in the pairs notebook 01 flagged as intrinsically ambiguous *before any model was
-trained*: `general_quirky` ↔ `qa_factoid` (22 + 7), `calendar_set` ↔ `calendar_query`
-(9 + 8).
+361 test utterances (12.1%) are wrong under both zero-shot and LoRA. LoRA's remaining
+errors are no longer about operations — they are concentrated in `general_quirky`,
+MASSIVE's catch-all class, and in the pairs notebook 01 flagged as intrinsically ambiguous
+*before any model was trained*: `general_quirky` ↔ `qa_factoid` (22 + 7), `calendar_set` ↔
+`calendar_query` (9 + 8).
 
 `general_quirky` is where the two fine-tuned models separate:
 
