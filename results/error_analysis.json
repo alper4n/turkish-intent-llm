@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T22:10:30+00:00",
+  "generated_at": "2026-09-21T22:31:40+00:00",
   "experiment": "error_analysis",
   "seed": 42,
   "berturk_reproduction": {
@@ -91,6 +91,44 @@
     }
   ],
   "corpus_has_no_capitals": true,
+  "tokenizer_fertility": [
+    {
+      "tokenizer": "BERTurk",
+      "pretraining": "Turkish only",
+      "vocab": 32000,
+      "tr_fertility": 1.299,
+      "en_fertility": 1.804,
+      "tr_over_en": 0.72,
+      "tr_tokens": 82173
+    },
+    {
+      "tokenizer": "mBERT",
+      "pretraining": "104 languages",
+      "vocab": 119547,
+      "tr_fertility": 2.036,
+      "en_fertility": 1.236,
+      "tr_over_en": 1.65,
+      "tr_tokens": 128827
+    },
+    {
+      "tokenizer": "XLM-R",
+      "pretraining": "100 languages",
+      "vocab": 250002,
+      "tr_fertility": 1.491,
+      "en_fertility": 1.177,
+      "tr_over_en": 1.27,
+      "tr_tokens": 94347
+    },
+    {
+      "tokenizer": "Qwen2.5",
+      "pretraining": "multilingual",
+      "vocab": 151643,
+      "tr_fertility": 2.066,
+      "en_fertility": 1.081,
+      "tr_over_en": 1.91,
+      "tr_tokens": 130678
+    }
+  ],
   "ambiguity": {
     "ambiguous_test_utterances": 15,
     "accuracy_by_ambiguity": {

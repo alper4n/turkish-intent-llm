@@ -17,7 +17,26 @@ laptop GPU rather than 100 minutes on a T4, and it classifies in one forward pas
 generating tokens. LoRA closes almost all of the enormous gap from zero-shot — but it closes
 it to just under the encoder, not past it.
 
-Every number below comes from a run in this repository; nothing is quoted from a paper.
+### Four things the experiments turned up
+
+- **One letter carries most of Turkish's orthographic risk.** Stripping all six Turkish
+  diacritics costs the winning model 3.3 points of accuracy, and `ı` alone accounts for 84%
+  of that — because ASCII cannot hold the dotted/dotless distinction that Turkish suffixes
+  ride on. → [Diacritics](#diacritics-cost-real-accuracy-and-one-letter-does-most-of-the-damage)
+- **A multilingual vocabulary taxes Turkish.** Every multilingual tokenizer tested spends
+  more tokens per Turkish word than per English word, up to 1.9×. BERTurk, with an eight
+  times smaller vocabulary than XLM-R, is the only one that does not.
+  → [Tokenizers](#a-multilingual-vocabulary-taxes-turkish)
+- **The stopping rule mattered more than the architecture gap.** Selecting the checkpoint on
+  validation macro-F1 rather than validation loss was worth 5.6 points — larger than the
+  entire distance between the two fine-tuned models.
+  → [Model selection](#selecting-on-macro-f1-instead-of-loss-is-worth-56-points)
+- **The two fine-tuned models fail on different utterances.** An oracle over the pair scores
+  0.9055 against 0.8773 for the better one alone.
+  → [Complementarity](#the-two-fine-tuned-models-fail-differently)
+
+Every number in this README comes from a run in this repository, transcribed from
+`results/*.json`; nothing is quoted from a paper.
 
 ## Results
 
@@ -191,9 +210,9 @@ classifier is failing on the boundaries the data itself does not draw cleanly.
 ### Tokenization
 
 BERTurk needs **1.299 WordPiece tokens per whitespace word** on the Turkish training set
-(82,173 subwords for 63,263 words). Notebook 05 compares this against a multilingual
-tokenizer on the same utterances, to separate "the model is small" from "the vocabulary
-shreds Turkish morphology".
+(82,173 subwords for 63,263 words). That is low, and
+[the tokenizer comparison below](#a-multilingual-vocabulary-taxes-turkish) shows how much of
+it is owed to the vocabulary being Turkish rather than to Turkish being easy.
 
 ### Reproduction note
 
@@ -436,6 +455,37 @@ before anything else. Fixing that one letter recovers most of what ASCII input c
 A Turkish-aware lowercasing probe returns a delta of exactly zero — because **not one of the
 16,521 utterances contains a capital letter**. That is missing evidence, not robustness. This
 data cannot say how any of these models handle `Yarın Sabah Alarm Kur`.
+
+### A multilingual vocabulary taxes Turkish
+
+MASSIVE is parallel, so the same 11,514 commands exist in English. Running both languages
+through each tokenizer separates "Turkish is morphologically dense" from "this vocabulary
+was not built for Turkish".
+
+![Tokenizer fertility](results/figures/tokenizer_fertility.png)
+
+| Tokenizer | Pretraining | Vocab | Turkish | English | Turkish ÷ English |
+|---|---|---:|---:|---:|---:|
+| **BERTurk** | Turkish only | 32,000 | **1.299** | 1.804 | **0.72** |
+| XLM-R | 100 languages | 250,002 | 1.491 | 1.177 | 1.27 |
+| mBERT | 104 languages | 119,547 | 2.036 | 1.236 | 1.65 |
+| Qwen2.5 | multilingual | 151,643 | 2.066 | 1.081 | 1.91 |
+
+**BERTurk is the only tokenizer here that finds Turkish cheaper than English.** Every
+multilingual vocabulary charges Turkish more per word than English — Qwen2.5 by 1.9×, mBERT
+by 1.65× — while BERTurk's ratio is 0.72, because its 32k vocabulary holds whole Turkish
+word forms and has to break English apart instead.
+
+**Vocabulary size does not buy coverage; targeting does.** XLM-R carries nearly eight times
+BERTurk's vocabulary and still needs more tokens per Turkish word. The tokens exist, they
+are just spent on other languages.
+
+This is notebook 01's morphology finding seen from the model's side. Turkish packs grammar
+into suffixes, and a vocabulary that has not seen enough Turkish splits those suffixes into
+fragments the model must reassemble before it can classify anything. It is also the quiet
+cost behind the LLM experiment: the same corpus is **59% more tokens** under Qwen's
+tokenizer (130,678 against 82,173). For a production assistant that is latency and context
+budget, not just a training bill.
 
 ### The residue
 
