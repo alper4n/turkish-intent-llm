@@ -1,0 +1,31 @@
+# Experiment 03 — zero-shot baseline: prompt an instruction-tuned LLM with the full
+# intent inventory and no training at all. Inherits seed and dataset from data.yaml.
+
+experiment: qwen_zeroshot
+
+model:
+  name: Qwen/Qwen2.5-1.5B-Instruct
+  # fp16 everywhere: T4 has no bfloat16, and fp16 inference is stable on Apple MPS
+  # (unlike fp16 *training*, which is why notebook 02 stays in fp32 off CUDA).
+  dtype: float16
+
+generation:
+  # Measured on 8 GB unified memory: fp16 weights alone are 3.08 GB, and the KV cache
+  # for these ~300-token prompts adds 0.08 GB at batch 4 but 1.03 GB at batch 8 and
+  # enough at batch 16 to push the machine into swap, where throughput collapses by
+  # roughly 10x. Batch 4 buys almost all of the available speed for almost no memory.
+  # On a 16 GB T4 this can safely be raised to 16.
+  batch_size: 4
+  # The answer is one label; 12 tokens is enough for the longest intent name plus
+  # any stray punctuation, and caps the cost of a model that ignores the format.
+  max_new_tokens: 12
+  do_sample: false        # greedy — the run must be reproducible
+
+prompt:
+  # The prompt is checked on a validation subsample and then frozen. Iterating on the
+  # test set would turn a zero-shot baseline into an unreported tuning run.
+  dev_sample_size: 200
+
+output:
+  results_name: zeroshot_qwen
+  predictions_name: zeroshot_qwen_predictions
