@@ -1,0 +1,19 @@
+# Shared data + reproducibility settings. Experiment configs (BERTurk, zero-shot,
+# LoRA) live beside this file and inherit these values.
+
+seed: 42
+
+dataset:
+  name: amazon-massive
+  version: "1.0"
+  locale: tr-TR
+  url: https://amazon-massive-nlu-dataset.s3.amazonaws.com/amazon-massive-dataset-1.0.tar.gz
+  sha256: 7df623fd2d300a4d235d6ee5bd396c9a28258d3a0ccb29abdb054506eba153f8
+  cache_dir: data/raw
+  # Official partitions are used as published; we never re-split.
+  text_field: utt
+  label_field: intent
+
+paths:
+  results_dir: results
+  figures_dir: results/figures

@@ -1,0 +1,198 @@
+{
+  "generated_at": "2026-09-21T16:49:02+00:00",
+  "dataset": {
+    "name": "amazon-massive",
+    "version": "1.0",
+    "locale": "tr-TR",
+    "source_url": "https://amazon-massive-nlu-dataset.s3.amazonaws.com/amazon-massive-dataset-1.0.tar.gz",
+    "sha256": "7df623fd2d300a4d235d6ee5bd396c9a28258d3a0ccb29abdb054506eba153f8"
+  },
+  "splits": {
+    "train": 11514,
+    "validation": 2033,
+    "test": 2974
+  },
+  "n_intents": 60,
+  "n_scenarios": 18,
+  "label_coverage": {
+    "intents_per_split": {
+      "train": 60,
+      "validation": 59,
+      "test": 59
+    },
+    "absent_intents": {
+      "train": [],
+      "validation": [
+        "audio_volume_other"
+      ],
+      "test": [
+        "cooking_query"
+      ]
+    }
+  },
+  "intent_imbalance": {
+    "n_intents": 60,
+    "max_count": 810,
+    "min_count": 4,
+    "median_count": 128.5,
+    "imbalance_ratio": 202.5,
+    "intents_under_100_train": 18,
+    "intents_under_50_train": 6
+  },
+  "utterance_length": {
+    "mean_words": 5.48,
+    "median_words": 5.0,
+    "max_words": 50,
+    "mean_chars": 34.94,
+    "share_under_4_words": 0.2203
+  },
+  "parallel_tr_vs_en": {
+    "mean_words_tr": 5.48,
+    "mean_words_en": 6.9,
+    "mean_chars_per_word_tr": 6.38,
+    "mean_chars_per_word_en": 5.06
+  },
+  "orthography": {
+    "share_with_turkish_chars": 0.9001,
+    "ascii_folding_collisions": 0
+  },
+  "ambiguity": {
+    "utterances_with_multiple_intents": 36,
+    "rows_affected": 106,
+    "share_of_corpus": 0.0064,
+    "top_confusable_pairs": [
+      {
+        "intents": [
+          "general_greet",
+          "general_quirky"
+        ],
+        "count": 3
+      },
+      {
+        "intents": [
+          "calendar_remove",
+          "lists_remove"
+        ],
+        "count": 2
+      },
+      {
+        "intents": [
+          "audio_volume_down",
+          "audio_volume_mute"
+        ],
+        "count": 2
+      },
+      {
+        "intents": [
+          "iot_hue_lightdim",
+          "iot_hue_lightoff"
+        ],
+        "count": 2
+      },
+      {
+        "intents": [
+          "play_audiobook",
+          "play_music"
+        ],
+        "count": 2
+      },
+      {
+        "intents": [
+          "calendar_query",
+          "recommendation_events"
+        ],
+        "count": 2
+      },
+      {
+        "intents": [
+          "iot_hue_lighton",
+          "iot_hue_lightup"
+        ],
+        "count": 2
+      },
+      {
+        "intents": [
+          "alarm_set",
+          "calendar_set"
+        ],
+        "count": 1
+      },
+      {
+        "intents": [
+          "general_quirky",
+          "qa_definition"
+        ],
+        "count": 1
+      },
+      {
+        "intents": [
+          "general_quirky",
+          "lists_query"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  "intent_labels": [
+    "alarm_query",
+    "alarm_remove",
+    "alarm_set",
+    "audio_volume_down",
+    "audio_volume_mute",
+    "audio_volume_other",
+    "audio_volume_up",
+    "calendar_query",
+    "calendar_remove",
+    "calendar_set",
+    "cooking_query",
+    "cooking_recipe",
+    "datetime_convert",
+    "datetime_query",
+    "email_addcontact",
+    "email_query",
+    "email_querycontact",
+    "email_sendemail",
+    "general_greet",
+    "general_joke",
+    "general_quirky",
+    "iot_cleaning",
+    "iot_coffee",
+    "iot_hue_lightchange",
+    "iot_hue_lightdim",
+    "iot_hue_lightoff",
+    "iot_hue_lighton",
+    "iot_hue_lightup",
+    "iot_wemo_off",
+    "iot_wemo_on",
+    "lists_createoradd",
+    "lists_query",
+    "lists_remove",
+    "music_dislikeness",
+    "music_likeness",
+    "music_query",
+    "music_settings",
+    "news_query",
+    "play_audiobook",
+    "play_game",
+    "play_music",
+    "play_podcasts",
+    "play_radio",
+    "qa_currency",
+    "qa_definition",
+    "qa_factoid",
+    "qa_maths",
+    "qa_stock",
+    "recommendation_events",
+    "recommendation_locations",
+    "recommendation_movies",
+    "social_post",
+    "social_query",
+    "takeaway_order",
+    "takeaway_query",
+    "transport_query",
+    "transport_taxi",
+    "transport_ticket",
+    "transport_traffic",
+    "weather_query"
+  ]
+}

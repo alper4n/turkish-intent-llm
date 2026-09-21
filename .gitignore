@@ -1,0 +1,26 @@
+# Datasets and model artefacts are re-downloadable / re-trainable, never committed.
+data/
+checkpoints/
+outputs/
+*.safetensors
+*.bin
+*.pt
+
+# Results: JSON metrics and figures are committed; raw training logs are not.
+results/logs/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+.vscode/
+.idea/
