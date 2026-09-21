@@ -198,12 +198,19 @@ re-run on different hardware is comparable rather than confusing.
 |---|---|---|
 | 01 | [`01_data_exploration.ipynb`](notebooks/01_data_exploration.ipynb) | Splits, label imbalance, length statistics, Turkish-specific analysis. **Done.** |
 | 02 | [`02_baseline_berturk.ipynb`](notebooks/02_baseline_berturk.ipynb) | Fine-tune `dbmdz/bert-base-turkish-cased` for 60-way classification. **Done.** |
-| 03 | `03_zeroshot_qwen.ipynb` | Qwen2.5-1.5B-Instruct prompted with the full intent inventory, no training. *Planned.* |
-| 04 | `04_lora_qwen.ipynb` | Qwen2.5-1.5B-Instruct + LoRA, supervised fine-tuning to emit the intent label. *Planned.* |
+| 03 | [`03_zeroshot_qwen.ipynb`](notebooks/03_zeroshot_qwen.ipynb) | Qwen2.5-1.5B-Instruct prompted with the full intent inventory, no training. *Ready to run.* |
+| 04 | [`04_lora_qwen.ipynb`](notebooks/04_lora_qwen.ipynb) | Qwen2.5-1.5B-Instruct + LoRA, supervised fine-tuning to emit the intent label. *Ready to run.* |
 | 05 | `05_error_analysis.ipynb` | Confusion pairs, per-intent breakdown, Turkish-specific failure modes. *Planned.* |
 
 Every notebook runs end to end on a free Google Colab **T4**. T4 is Turing-class and has no
-bfloat16 support, so training uses fp16 throughout.
+bfloat16 support, so mixed-precision training uses fp16 throughout.
+
+Notebooks 01 and 02 also run on a laptop — the BERTurk numbers above came from an Apple
+MPS run. Notebooks 03 and 04 need the GPU. The 1.5B model is 3.08 GB in fp16 before any
+activations, and on a machine with 8 GB of unified memory that is enough to push generation
+into swap, where throughput drops roughly tenfold. Batch sizes are read from the config per
+device (`batch_size` vs `batch_size_cuda`) rather than hard-coded, because the right value
+differs by an order of magnitude between the two.
 
 ## Reproducing
 

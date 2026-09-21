@@ -5,13 +5,12 @@ pyyaml>=6.0
 scikit-learn>=1.3
 matplotlib>=3.7
 
-# Modelling — versions are floors, not pins, so the file stays installable on
-# Google Colab, whose preinstalled torch build must not be replaced.
-torch>=2.1
-transformers>=4.44
-datasets>=2.19
-accelerate>=0.30
+# Modelling. Floors rather than pins, so the file stays installable on Google Colab,
+# whose preinstalled torch build must not be replaced. The transformers floor is a real
+# constraint, not caution: the notebooks use the v5 Trainer API (`eval_strategy`,
+# `processing_class`), and transformers 5 in turn requires torch 2.5.
+torch>=2.5
+transformers>=5.0,<6
+datasets>=3.0
+accelerate>=1.0
 peft>=0.11
-trl>=0.9
-bitsandbytes>=0.43
-sentencepiece>=0.2

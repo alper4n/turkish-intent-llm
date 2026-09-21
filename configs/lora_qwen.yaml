@@ -1,0 +1,55 @@
+# Experiment 04 — the main experiment: LoRA supervised fine-tuning of the same model
+# notebook 03 prompts zero-shot, on the same prompt. Inherits seed/dataset from data.yaml.
+
+experiment: qwen_lora_sft
+
+model:
+  name: Qwen/Qwen2.5-1.5B-Instruct
+  dtype: float16            # T4 is Turing-class — no bfloat16
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  # Attention and MLP projections both get adapters. Attention-only LoRA is cheaper but
+  # consistently weaker once the task needs the model to *select* from a fixed inventory
+  # rather than just attend differently.
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+training:
+  num_train_epochs: 2
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4     # effective batch 16
+  # Qwen2.5's vocabulary is 151,936 tokens, so the logits for one batch are
+  # batch x seq_len x 151936. At batch 8 and ~306-token sequences that is 744 MB in fp16
+  # before cross-entropy upcasts it to fp32 — the single largest allocation in the run,
+  # larger than the model itself. Keeping eval batches small costs almost no time.
+  per_device_eval_batch_size: 4
+  learning_rate: 2.0e-4              # LoRA tolerates ~10x the full fine-tuning rate
+  weight_decay: 0.0
+  warmup_steps: 100
+  lr_scheduler_type: cosine
+  max_grad_norm: 1.0
+  gradient_checkpointing: true       # trades ~30% step time for a large activation saving
+  logging_steps: 50
+  # Generation-based evaluation is far too slow to run every epoch; validation loss is
+  # only a progress signal here, and the real metrics come from the test set at the end.
+  eval_sample_size: 500
+
+generation:
+  batch_size: 4
+  batch_size_cuda: 16
+  max_new_tokens: 12
+
+output:
+  results_name: lora_qwen
+  predictions_name: lora_qwen_predictions
+  adapter_dir: checkpoints/qwen-lora
+  checkpoint_dir: checkpoints/qwen-lora-trainer

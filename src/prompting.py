@@ -68,13 +68,20 @@ def generate_labels(
     *,
     batch_size: int = 16,
     max_new_tokens: int = 12,
-    device: str = "cpu",
+    device: str | None = None,
     progress_every: int = 20,
 ) -> list[str]:
-    """Greedy-decode one intent name per utterance. Returns the raw model outputs."""
+    """Greedy-decode one intent name per utterance. Returns the raw model outputs.
+
+    `device` defaults to wherever the model already lives, so inputs cannot silently
+    end up on a different device than the weights.
+    """
     import time
 
     import torch
+
+    if device is None:
+        device = next(model.parameters()).device
 
     prompts = [
         tokenizer.apply_chat_template(
