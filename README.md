@@ -13,9 +13,9 @@ examples, is a parameter-efficient fine-tuned 1.5B LLM actually better than a 11
 that was pretrained on Turkish?** Every number below comes from a run in this repository;
 nothing is quoted from a paper.
 
-> **Status — work in progress.** Data exploration is complete and reproducible. The three
-> modelling experiments have not been run yet, so the results table is empty. It will be
-> filled in from `results/*.json` as each experiment lands; no placeholder numbers are
+> **Status — work in progress.** Data exploration and the BERTurk baseline are complete.
+> The two LLM experiments have not been run yet, so their rows are empty. Every row is
+> transcribed from `results/*.json` as the experiment lands; no placeholder numbers are
 > published.
 
 ## Results
@@ -25,7 +25,7 @@ All models are evaluated on the official MASSIVE tr-TR **test** split (2,974 utt
 | Experiment | Model | Trainable params | Accuracy | Macro-F1 |
 |---|---|---:|---:|---:|
 | Zero-shot prompting | Qwen2.5-1.5B-Instruct | 0 | — | — |
-| Classical fine-tune | BERTurk (`dbmdz/bert-base-turkish-cased`) | — | — | — |
+| Classical fine-tune | BERTurk (`dbmdz/bert-base-turkish-cased`) | 110,663,484 | **0.8773** | **0.8501** |
 | LoRA SFT | Qwen2.5-1.5B-Instruct + LoRA | — | — | — |
 
 **Macro-F1 convention.** `cooking_query` has no test utterances at all (see
@@ -116,12 +116,88 @@ more than one intent — `general_greet` vs `general_quirky`, `audio_volume_down
 separate these from text alone, so they bound achievable accuracy and are the first place to
 look when reading a confusion matrix.
 
+## BERTurk baseline
+
+A full fine-tune of all 110,663,484 parameters, 10 epochs, sequence length 32 (which
+truncates nothing — the longest training utterance is 31 WordPiece tokens). Checkpoint
+selection is on validation macro-F1.
+
+| | Test |
+|---|---:|
+| Accuracy | 0.8773 |
+| Macro-F1 (59 intents present) | 0.8501 |
+| Macro-F1 (all 60 labels) | 0.8359 |
+| Weighted F1 | 0.8773 |
+
+The 0.0142 gap between the two macro-F1 numbers is exactly `0.8501 / 60` — the arithmetic
+cost of averaging in one class that has no test examples. It says nothing about the model,
+which is why the convention has to be published rather than left implicit.
+
+### Selecting on macro-F1 instead of loss is worth 5.6 points
+
+![Validation curve](results/figures/berturk_validation_curve.png)
+
+Validation loss bottoms out at **epoch 3** (0.5423) and rises monotonically afterwards, to
+0.6519 by epoch 10. Validation macro-F1 does the opposite — it keeps climbing and peaks at
+**epoch 9** (0.8595).
+
+The two signals disagree because they measure different things. As training continues the
+model grows more confident on the head classes it already gets right, which inflates
+cross-entropy on the examples it gets wrong, while it is still slowly learning the tail.
+Early stopping on validation loss would have halted at epoch 3 and shipped a model scoring
+**0.8034** macro-F1; selecting on macro-F1 gives **0.8595**. Same run, same data, 5.6 points
+of difference from the stopping rule alone.
+
+### Where the errors are
+
+![Per-intent F1 vs. training support](results/figures/berturk_f1_vs_support.png)
+
+| Intent group | Count | Mean test F1 |
+|---|---:|---:|
+| Fewer than 100 training utterances | 17 | 0.7799 |
+| 100 or more training utterances | 42 | 0.8785 |
+
+The ten-point gap is the whole reason macro-F1 is the headline metric: accuracy, which the
+head classes dominate, hides it completely.
+
+The one large intent that performs badly is `general_quirky` (555 training utterances, test
+F1 0.6624) — visible as the lone outlier on the right of the plot. It is not starved of
+data; it is MASSIVE's catch-all class for anything conversational, so it overlaps with
+whatever else the utterance resembles. It accounts for the three most frequent confusions:
+
+| Count | Gold | Predicted |
+|---:|---|---|
+| 16 | `general_quirky` | `qa_factoid` |
+| 10 | `calendar_set` | `calendar_query` |
+| 9 | `general_quirky` | `calendar_query` |
+| 8 | `calendar_query` | `calendar_set` |
+| 7 | `general_quirky` | `news_query` |
+| 7 | `qa_factoid` | `general_quirky` |
+
+The `general_quirky` ↔ `qa_factoid` and `calendar_set` ↔ `calendar_query` pairs were both
+flagged as intrinsically ambiguous in notebook 01, before any model was trained — the
+classifier is failing on the boundaries the data itself does not draw cleanly.
+
+### Tokenization
+
+BERTurk needs **1.299 WordPiece tokens per whitespace word** on the Turkish training set
+(82,173 subwords for 63,263 words). Notebook 05 compares this against a multilingual
+tokenizer on the same utterances, to separate "the model is small" from "the vocabulary
+shreds Turkish morphology".
+
+### Reproduction note
+
+These numbers come from a run on Apple M-series MPS in **fp32**, taking 45.5 minutes. On a
+Colab T4 the notebook switches to fp16 automatically (`USE_FP16` follows `cuda_available`,
+and T4 has no bfloat16). The full environment is recorded in `results/berturk.json`, so a
+re-run on different hardware is comparable rather than confusing.
+
 ## Experiments
 
 | # | Notebook | What it does |
 |---|---|---|
 | 01 | [`01_data_exploration.ipynb`](notebooks/01_data_exploration.ipynb) | Splits, label imbalance, length statistics, Turkish-specific analysis. **Done.** |
-| 02 | `02_baseline_berturk.ipynb` | Fine-tune `dbmdz/bert-base-turkish-cased` for 60-way classification. *Planned.* |
+| 02 | [`02_baseline_berturk.ipynb`](notebooks/02_baseline_berturk.ipynb) | Fine-tune `dbmdz/bert-base-turkish-cased` for 60-way classification. **Done.** |
 | 03 | `03_zeroshot_qwen.ipynb` | Qwen2.5-1.5B-Instruct prompted with the full intent inventory, no training. *Planned.* |
 | 04 | `04_lora_qwen.ipynb` | Qwen2.5-1.5B-Instruct + LoRA, supervised fine-tuning to emit the intent label. *Planned.* |
 | 05 | `05_error_analysis.ipynb` | Confusion pairs, per-intent breakdown, Turkish-specific failure modes. *Planned.* |

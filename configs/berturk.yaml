@@ -1,0 +1,28 @@
+# Experiment 02 — classical baseline: fine-tune a Turkish BERT encoder for 60-way
+# intent classification. Inherits seed and dataset settings from data.yaml.
+
+experiment: berturk_finetune
+
+model:
+  name: dbmdz/bert-base-turkish-cased
+  # 32 tokens covers 100% of the training set; the longest utterance is 31 tokens
+  # (measured with this tokenizer in notebook 02). Padding beyond that is wasted compute.
+  max_length: 32
+
+training:
+  num_train_epochs: 10
+  per_device_train_batch_size: 32
+  per_device_eval_batch_size: 64
+  learning_rate: 3.0e-5
+  weight_decay: 0.01
+  warmup_steps: 360          # ~10% of 3,600 total steps
+  lr_scheduler_type: linear
+  max_grad_norm: 1.0
+  # Selection is on validation macro-F1, not accuracy: with 18 intents under 100
+  # training examples, accuracy would keep rewarding a model that drops the tail.
+  metric_for_best_model: macro_f1
+  early_stopping_patience: 3
+
+output:
+  results_name: berturk
+  checkpoint_dir: checkpoints/berturk

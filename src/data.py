@@ -160,6 +160,13 @@ def intent_labels(frame: pd.DataFrame) -> list[str]:
     return sorted(frame["intent"].unique().tolist())
 
 
+def label_mappings(labels: list[str]) -> tuple[dict[str, int], dict[int, str]]:
+    """Build the label<->id maps used by the classifier heads and the results files."""
+    label2id = {label: index for index, label in enumerate(labels)}
+    id2label = {index: label for label, index in label2id.items()}
+    return label2id, id2label
+
+
 if __name__ == "__main__":
     splits = load_splits()
     for name, part in splits.items():
