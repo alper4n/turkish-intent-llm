@@ -7,6 +7,7 @@ baseline.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![tests](https://github.com/alper4n/turkish-intent-llm/actions/workflows/tests.yml/badge.svg)](https://github.com/alper4n/turkish-intent-llm/actions/workflows/tests.yml)
 
 The question this repo answers: **for a 60-class Turkish intent task with ~11.5k training
 examples, is a parameter-efficient fine-tuned 1.5B LLM actually better than a 110M encoder
@@ -496,9 +497,9 @@ budget, not just a training bill.
 
 ### The residue
 
-281 utterances defeat both fine-tuned models, led by `general_quirky` (52), `calendar_query`
-(21) and `qa_factoid` (16) — the same catch-all and query/action boundaries that notebook 01
-flagged from the data alone, before anything was trained.
+281 utterances defeat both BERTurk and LoRA, led by `general_quirky` (52),
+`calendar_query` (21) and `qa_factoid` (16) — the same catch-all and query/action
+boundaries that notebook 01 flagged from the data alone, before anything was trained.
 
 ## Limitations
 
@@ -581,6 +582,19 @@ through `src.utils.set_seed`), the published dataset splits used as-is, and a SH
 on the downloaded archive. Every metric is written to `results/` as JSON with a timestamp
 and the runtime environment, and the tables in this README are transcribed from those files.
 
+### Tests
+
+```bash
+pytest
+```
+
+36 tests, no downloads, about six seconds. They cover the parts that fail quietly rather
+than loudly: the arithmetic the macro-F1 convention implies, that the SFT mask lines up
+with the completion and not one token off, that the label parser refuses to dig an intent
+out of a sentence, and that Turkish-aware lowercasing avoids `str.lower()`'s mistake with
+the dotted and dotless `i`. A stub tokenizer stands in for a real one, so the suite runs
+offline and gates every push through GitHub Actions.
+
 ## Repository layout
 
 ```
@@ -588,6 +602,7 @@ configs/      YAML configs — seed, dataset, per-experiment hyperparameters
 notebooks/    One notebook per experiment, Colab-ready
 src/          Reusable code: data loading, metrics, prompting, training helpers
 results/      Metrics as JSON + figures; the source of every number in this README
+tests/        Offline unit tests for the logic above; no models, no data
 ```
 
 ## Data licence and citation

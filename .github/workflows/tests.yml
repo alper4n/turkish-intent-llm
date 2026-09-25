@@ -1,0 +1,31 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # The CPU wheel keeps the job to a couple of minutes. Nothing here trains
+      # anything — the suite downloads no models and no data, so a GPU build would
+      # only cost time.
+      - name: Install PyTorch (CPU)
+        run: pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet pandas numpy scikit-learn scipy pyyaml pytest
+          pip install --quiet "transformers>=5.0,<6" "peft>=0.11"
+
+      - name: Run tests
+        run: pytest tests/ -q
