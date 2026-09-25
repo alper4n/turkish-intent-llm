@@ -529,6 +529,16 @@ carries no estimate of run-to-run variance.
 over perturbed text, and the LoRA adapter is not committed (it needs a GPU to regenerate).
 The finding about `ı` is a property of the encoder measured here, not yet shown for the LLM.
 
+**Word order was not analysed.** Turkish is verb-final by default, and putting the verb
+elsewhere (*devrik cümle*) is ordinary in speech, so it is a fair question whether these
+models handle it worse. Answering it means locating the verb, which needs a morphological
+or dependency parser — and the available Turkish parsers are trained on edited, punctuated
+text rather than lowercase voice commands, so the measurement would carry an uncertainty of
+its own. A cheap proxy is tempting and wrong: "the utterance ends in a slot" turns out to
+select verbless fragments like `parlaklık [change_amount : yüzde doksan]`, not inverted
+sentences. Of the three Turkish-specific difficulties this project set out to examine,
+agglutination and orthography are measured above; word order is not.
+
 **The perturbations are synthetic.** Diacritics are stripped programmatically. That models
 one common failure of typed Turkish, but it is not a sample of what real users or a real ASR
 front-end produce, and it says nothing about the error patterns those would introduce.
