@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T22:39:46+00:00",
+  "generated_at": "2026-09-25T19:04:42+00:00",
   "experiment": "error_analysis",
   "seed": 42,
   "berturk_reproduction": {
@@ -91,6 +91,7 @@
       "flipped per 100 affected": 0.88
     }
   ],
+  "probes_ran": true,
   "corpus_has_no_capitals": true,
   "tokenizer_fertility": [
     {
