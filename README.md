@@ -614,6 +614,17 @@ src/          Reusable code: data loading, metrics, prompting, training helpers
 results/      Metrics as JSON + figures; the source of every number in this README
 tests/        Offline unit tests for the logic above; no models, no data
 ```
+## How this was built
+
+The experiments, the metric conventions and the analyses here were specified and reviewed
+by me; most of the code was written with Claude Code, and the commits record that as
+co-authorship.
+
+What I decided rather than delegated: which three experiments would answer the question;
+that macro-F1 would be averaged over the intents present in the test split, with both
+conventions reported; that the negative result would be published rather than tuned away;
+and that the limitations would be written down in full — including the asymmetry that
+weakens the headline comparison.
 
 ## Data licence and citation
 
