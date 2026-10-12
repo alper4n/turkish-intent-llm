@@ -20,6 +20,15 @@ it to just under the encoder, not past it. The gap is significant (exact McNemar
 though the two runs were not given equal opportunity to be selected — see
 [Limitations](#limitations).
 
+The task, concretely — one Turkish utterance in, one of 60 intent labels out:
+
+| Utterance | | Gold intent |
+|---|---|---|
+| ışıkları kıs | *dim the lights* | `iot_hue_lightdim` |
+| bu hafta beni sabah beşte uyandır | *wake me at five this week* | `alarm_set` |
+| bana bir fıkra anlatır mısın | *can you tell me a joke* | `general_joke` |
+| adana için bugünkü hava nasıl | *what is the weather in Adana today* | `weather_query` |
+
 ### Four things the experiments turned up
 
 - **One letter carries most of Turkish's orthographic risk.** Stripping all six Turkish
