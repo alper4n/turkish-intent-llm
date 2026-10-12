@@ -9,6 +9,8 @@ baseline.
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![tests](https://github.com/alper4n/turkish-intent-llm/actions/workflows/tests.yml/badge.svg)](https://github.com/alper4n/turkish-intent-llm/actions/workflows/tests.yml)
 
+*Türkçe özet: [README.tr.md](README.tr.md)*
+
 The question this repo answers: **for a 60-class Turkish intent task with ~11.5k training
 examples, is a parameter-efficient fine-tuned 1.5B LLM actually better than a 110M encoder
 that was pretrained on Turkish?**
